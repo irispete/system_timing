@@ -32,46 +32,62 @@ namespace system_timing
         {
             case EventTimeType::start:
             {
-                if (sequence.size() > 0)
-                {
-                    logger_.error("restarting an existing timing sequence: deleting old events");
-                    sequence.clear();
-                }
-                sequence.push_back(event);
+                addStartNode_(event, sequence);
             } break;
             case EventTimeType::add:
             {
-                if (sequence.size() == 0)
-                {
-                    logger_.error("adding to a non-existing timing sequence");
-                }
-                else
-                {
-                    if (event.time < sequence.back().time)
-                    {
-                        logger_.error("event arrived out of order");
-                    }
-                }
-                sequence.push_back(event);
+                addNode_(event, sequence);
             } break;
             case EventTimeType::end:
             {
-                if (sequence.size() == 0)
-                {
-                    logger_.error("ending a non-existing timing sequence");
-                }
-                else
-                {
-                    if (event.time < sequence.back().time)
-                    {
-                        logger_.error("event arrived out of order");
-                    }
-                }
-                sequence.push_back(event);
-                save_sequence_(sequence);
-                sequences_[event.category.data].erase(event.id);
+                addEndNode_(event, sequence);
             } break;
         }
+    }
+
+    void EventTimeManager::addEndNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence)
+    {
+        if (sequence.size() == 0)
+        {
+            logger_.error("ending a non-existing timing sequence");
+        }
+        else
+        {
+            if (event.time < sequence.back().time)
+            {
+                logger_.error("event arrived out of order");
+            }
+        }
+        sequence.push_back(event);
+        save_sequence_(sequence);
+        sequences_[event.category.data].erase(event.id);
+    }
+
+    void EventTimeManager::addNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence)
+    {
+        if (sequence.size() == 0)
+        {
+            logger_.error("adding to a non-existing timing sequence");
+        }
+        else
+        {
+            if (event.time < sequence.back().time)
+            {
+                logger_.error("event arrived out of order");
+            }
+        }
+        sequence.push_back(event);
+    }
+
+    void EventTimeManager::addStartNode_(const iris_common::EventTime &event,
+                                         std::list<iris_common::EventTime> &sequence)
+    {
+        if (sequence.size() > 0)
+        {
+            logger_.error("restarting an existing timing sequence: deleting old events");
+            sequence.clear();
+        }
+        sequence.push_back(event);
     }
 
     void EventTimeManager::flush()

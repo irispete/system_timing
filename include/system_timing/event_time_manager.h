@@ -21,10 +21,19 @@ namespace system_timing
             void setSaveFunction(const std::function<void(std::list<iris_common::EventTime> &)> &save_sequence);
 
         private:
+            void addStartNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence);
+
+            void addNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence);
+
+            void addEndNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence);
+            
             std::list<iris_common::EventTime>& findSequence_(const iris_common::EventTime &event);
+
+
             std::function<void(std::list<iris_common::EventTime> &)> save_sequence_;
             std::map<std::string, std::map<int, std::list<iris_common::EventTime>>> sequences_;
             AbstractEventLogger& logger_;
+
     };
 }
 
