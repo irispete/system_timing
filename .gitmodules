@@ -1,0 +1,6 @@
+[submodule "iris_unit_test_framework"]
+	path = iris_unit_test_framework
+	url = git@github.com:irisai/iris_unit_test_framework
+[submodule "test/iris_unit_test_framework"]
+	path = test/iris_unit_test_framework
+	url = git@github.com:irisai/iris_unit_test_framework

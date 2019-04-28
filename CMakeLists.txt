@@ -87,6 +87,9 @@ endif ()
 # compile utm
 add_library(system_timing
         src/ros_node.cpp
+        src/system_timing_ros_node.cpp
+        src/event_time_manager.cpp
+        src/event_time_publisher.cpp
         )
 add_dependencies(system_timing ${catkin_EXPORTED_TARGETS})
 target_link_libraries(system_timing PRIVATE cpprestsdk::cpprest
@@ -96,7 +99,9 @@ target_link_libraries(system_timing PRIVATE cpprestsdk::cpprest
         )
 
 # ros node
-add_executable(system_timing_node src/system_timing_node.cpp)
+add_executable(system_timing_node
+        src/system_timing_node.cpp
+        )
 add_dependencies(system_timing_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(system_timing_node
         system_timing
