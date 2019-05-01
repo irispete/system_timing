@@ -1,5 +1,7 @@
 #include <vector>
 #include <boost/filesystem.hpp>
+#include <chrono>
+#include <ctime>
 #include <iris_unit_test_framework/iris_unit_test_framework.h>
 #include <iris_common/log/csv_logger.h>
 #include <system_timing/event_time_csv_logger.h>
@@ -15,7 +17,7 @@ class EventTImerCsvLoggerTest : public testing::Test
     protected:
         std::string path_ = "events.csv";
         EventTimeCsvLogger logger_;
-        const unsigned int header_size = 72;
+        const unsigned int header_size = 50;
 
     virtual void SetUp()
     {
@@ -30,13 +32,15 @@ class EventTImerCsvLoggerTest : public testing::Test
 
     iris_common::EventTime makeEvent()
     {
+        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
         iris_common::EventTime event_time{};
         event_time.node.data = "test-node";
         event_time.event.data = "frame-write";
         event_time.category.data = "EO";
         event_time.id = 111;
         event_time.type = 1;
-        event_time.time = 123;
+        event_time.time = now_ms;
         return std::move(event_time);
     }
 
