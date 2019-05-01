@@ -13,6 +13,11 @@ namespace system_timing
         : logger_(logger)
     {}
 
+    EventTimeManager::~EventTimeManager()
+    {
+        flush();
+    }
+
     void EventTimeManager::initialize(const std::string& output_folder)
     {
         event_time_csv_logger_.initialize(output_folder + "/events/");
@@ -24,7 +29,7 @@ namespace system_timing
         }
     }
 
-     void EventTimeManager::addEvent(const iris_common::EventTime &event)
+    void EventTimeManager::addEvent(const iris_common::EventTime &event)
     {
         std::list<iris_common::EventTime> &sequence = findSequence_(event);
         switch (static_cast<EventTimeType>(event.type))
@@ -42,6 +47,7 @@ namespace system_timing
                 addEndNode_(event, sequence);
             } break;
         }
+        checkAndFlushOldEvents_(event);
     }
 
     void EventTimeManager::addStartNode_(const iris_common::EventTime &event,
@@ -52,7 +58,7 @@ namespace system_timing
             logger_.error("restarting an existing timing sequence: deleting old events");
             sequence.clear();
         }
-        sequence.push_back(event);
+        sequence.push_back(std::move(event));
     }
 
     void EventTimeManager::addNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence)
@@ -85,20 +91,51 @@ namespace system_timing
             }
         }
         sequence.push_back(event);
-        save_sequence_(sequence);
+        if (save_sequence_)
+        {
+            save_sequence_(sequence);
+        }
         sequences_[event.category.data].erase(event.id);
     }
 
     void EventTimeManager::flush()
     {
-        for (auto pair : sequences_)
+        if (save_sequence_)
         {
-            for (auto id_pair : pair.second)
+            for (auto pair : sequences_)
             {
-                save_sequence_(id_pair.second);
+                for (auto id_pair : pair.second)
+                {
+                    save_sequence_(id_pair.second);
+                }
             }
         }
         sequences_.clear();
+    }
+
+    void EventTimeManager::checkAndFlushOldEvents_(const iris_common::EventTime &event)
+    {
+        // find the map of sequences for the category
+        auto sequences_it = sequences_.find(event.category.data);
+        if (sequences_it != sequences_.end())
+        {
+            auto& cat_sequences = sequences_it->second;
+            // check for max sequences in category
+            if (cat_sequences.size() > static_cast<unsigned long>(MAX_SEQUENCES))
+            {
+                // find the least (oldest) sequence in the category
+                auto sequence_it = cat_sequences.begin();
+                if (sequence_it != cat_sequences.end())
+                {
+                    auto& sequence = sequence_it->second;
+                    // save and get rid of the oldest sequence
+                    save_sequence_(sequence);
+                    auto value = sequence_it->first;
+                    cat_sequences.erase(value);
+                }
+
+            }
+        }
     }
 
     void EventTimeManager::setSaveFunction(const std::function<void(std::list<iris_common::EventTime> &)> &save_sequence)

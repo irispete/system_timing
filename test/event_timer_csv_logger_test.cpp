@@ -39,7 +39,7 @@ class EventTImerCsvLoggerTest : public testing::Test
         event_time.event.data = "frame-write";
         event_time.category.data = "EO";
         event_time.id = 111;
-        event_time.type = 1;
+        event_time.type = 2;
         event_time.time = now_ms;
         return std::move(event_time);
     }
@@ -84,6 +84,8 @@ TEST_F(EventTImerCsvLoggerTest, LengthWrittenLineTest)
 {
     auto event = makeEvent();
     std::list<iris_common::EventTime> sequence{event};
+    auto event2 = makeEvent();
+    sequence.push_back(event2);
 
     // Write to the file
     EXPECT_TRUE(logger_.write(sequence));
@@ -107,7 +109,7 @@ TEST_F(EventTImerCsvLoggerTest, LengthWrittenLineTest)
     input.close();
 
     // Verify number of items on that line is equal to number expected
-    ASSERT_EQ(tokens.size(), header_size);
+    ASSERT_EQ(tokens.size(), 10u);
 }
 
 /**

@@ -25,6 +25,7 @@ class EventTimeManagerTests : public testing::Test
 
         void TearDown()
         {
+            manager_.setSaveFunction(nullptr);
         }
 
         void saveSequence(std::list<iris_common::EventTime> &sequence)
@@ -130,7 +131,6 @@ TEST_F(EventTimeManagerTests, AddTwoEventTest)
  */
 TEST_F(EventTimeManagerTests, FindSequenceTest)
 {
-    // no sequence
     auto event = makeEvent("node", "first", "EO", 111, EventTimeType::start, 123);
     auto sequence = manager_.findSequence_(event);
     ASSERT_EQ(sequence.size(), 0u);
@@ -161,6 +161,32 @@ TEST_F(EventTimeManagerTests, FindSequenceTest)
     manager_.flush();
     ASSERT_EQ(manager_.sequences_.size(), 0u);
     ASSERT_EQ(call_count_, 3);
-
 }
 
+/**
+ * @brief
+ */
+TEST_F(EventTimeManagerTests, CheckAndFlushOldEventsTest)
+{
+    // add a bunch of sequences
+    for (int i = 1; i <= manager_.MAX_SEQUENCES+2; i++)
+    {
+        auto event = makeEvent("node", "event", "EO", i, EventTimeType::start, 123);
+        manager_.addEvent(event);
+    }
+    ASSERT_EQ(call_count_, 2);
+
+    ASSERT_EQ(mock_logger_.error_count, 0);
+    auto sequences_it = manager_.sequences_.find("EO");
+    ASSERT_NE(sequences_it, manager_.sequences_.end());
+    auto key = sequences_it->first;
+    auto value = sequences_it->second;
+    // the sequence should be deleted
+    auto sequence_it = sequences_it->second.find(1);
+    ASSERT_EQ(sequence_it, sequences_it->second.end());
+    // the sequence should be deleted
+    sequence_it = sequences_it->second.find(2);
+    ASSERT_EQ(sequence_it, sequences_it->second.end());
+    // should still be MAX_SEQUENCES
+    ASSERT_EQ(sequences_it->second.size(), static_cast<unsigned long>(manager_.MAX_SEQUENCES));
+}

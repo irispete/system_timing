@@ -16,6 +16,7 @@ namespace system_timing
     {
         public:
             EventTimeManager(AbstractEventLogger& logger);
+            ~EventTimeManager();
             void initialize(const std::string& output_folder);
             void addEvent(const iris_common::EventTime &event_time);
             void flush();
@@ -24,14 +25,12 @@ namespace system_timing
 
         private:
             void addStartNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence);
-
             void addNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence);
-
             void addEndNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence);
-            
+            void checkAndFlushOldEvents_(const iris_common::EventTime &event);
             std::list<iris_common::EventTime>& findSequence_(const iris_common::EventTime &event);
 
-
+            const int MAX_SEQUENCES = 60; // 4 seconds worth at 15 fps
             std::function<void(std::list<iris_common::EventTime> &)> save_sequence_;
             std::map<std::string, std::map<int, std::list<iris_common::EventTime>>> sequences_;
             AbstractEventLogger& logger_;
