@@ -22,6 +22,7 @@ namespace system_timing
 
         private:
             EventTimeManager event_time_manager_;
-            ros::Subscriber event_time_subscriber;    };
+            ros::Subscriber event_time_subscriber;
+    };
 }
 #endif //PROJECT_SYSTEM_TIMING_ROS_NODE_H

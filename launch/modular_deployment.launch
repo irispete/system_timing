@@ -4,6 +4,5 @@
         type="system_timing_node"
         name="system_timing_node"
         output="screen">
-
     </node>
 </launch>
