@@ -6,6 +6,8 @@
 #define PROJECT_SYSTEM_TIMING_ROS_NODE_H
 
 #include <system_timing/ros_node.h>
+#include <system_timing/event_time_manager.h>
+#include <iris_common/log/event_logger.h>
 
 namespace system_timing
 {
@@ -13,9 +15,13 @@ namespace system_timing
     {
         public:
             SystemTimingRosNode()
-                : RosNode("system_timing")
+                : RosNode("system_timing"), event_time_manager_(event_logger_)
             {}
 
+            void init(int argc, char* argv[]) override;
+
+        private:
+            EventTimeManager event_time_manager_;
     };
 }
 #endif //PROJECT_SYSTEM_TIMING_ROS_NODE_H

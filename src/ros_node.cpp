@@ -15,11 +15,11 @@ namespace system_timing
     {
     }
 
-    void RosNode::notifyWatchdog_(const ros::Publisher &publisher)
-    {
+    void RosNode::publishHeartbeat_()
+     {
         std_msgs::Header message;
         message.stamp = ros::Time::now();
-        publisher.publish(message);
+        watchdog_publisher_.publish(message);
     }
 
     void RosNode::init(int argc, char* argv[])
@@ -32,7 +32,7 @@ namespace system_timing
         {
             ros::spinOnce();
         }
-        const std::string output_subfolder = iris_common::fetchRosParam<std::string>(node_handle_,
+        output_subfolder_ = iris_common::fetchRosParam<std::string>(node_handle_,
                                                                                      "output_subfolder");
         const std::string terminal_log_level = iris_common::fetchRosParam<std::string>(node_handle_, node_name_ +
                                                                                                     "_terminal_log_level");
@@ -41,18 +41,18 @@ namespace system_timing
         spin_rate_hz_ = iris_common::fetchRosParam<double>(node_handle_, node_name_ + "_loop_rate");
         getParams();
 
-        saveToVersionFile(output_subfolder, false);
-        event_logger.initialize(node_name_, output_subfolder + "/events/", terminal_log_level, event_log_level);
-        event_logger.info("Initializing " + node_name_);
+        saveToVersionFile(output_subfolder_, false);
+        event_logger_.initialize(node_name_, output_subfolder_ + "/events/", terminal_log_level, event_log_level);
+        event_logger_.info("Initializing " + node_name_);
     }
 
     void RosNode::spin()
     {
-        ros::Publisher watchdog_publisher = node_handle_.advertise<std_msgs::Header>("heartbeat/" + node_name_, 1);
+        watchdog_publisher_ = node_handle_.advertise<std_msgs::Header>("heartbeat/" + node_name_, 1);
         ros::Rate rate(static_cast<double>(spin_rate_hz_));
         while (node_handle_.ok())
         {
-            notifyWatchdog_(watchdog_publisher);
+            publishHeartbeat_();
             ros::spinOnce();
             rate.sleep();
         }

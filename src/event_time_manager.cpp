@@ -4,13 +4,18 @@
 
 #include "../include/system_timing/event_time_publisher.h"
 #include "../include/system_timing/event_time_manager.h"
+#include <iris_common/log/csv_logger_inc.h>
 
 namespace system_timing
 {
 
     EventTimeManager::EventTimeManager(AbstractEventLogger& logger)
         : logger_(logger)
+    {}
+
+    void EventTimeManager::initialize(const std::string& output_folder)
     {
+        event_time_csv_logger_.initialize(output_folder + "/events/");
         if (!save_sequence_)
         {
             save_sequence_ =  [this](std::list<iris_common::EventTime>& event) {
@@ -19,13 +24,7 @@ namespace system_timing
         }
     }
 
-    EventTimeManager::EventTimeManager(std::function<void(std::list<iris_common::EventTime> &)> &save_sequence, AbstractEventLogger& logger)
-        : EventTimeManager(logger)
-    {
-        save_sequence_ = save_sequence;
-    }
-
-    void EventTimeManager::addEvent(const iris_common::EventTime &event)
+     void EventTimeManager::addEvent(const iris_common::EventTime &event)
     {
         std::list<iris_common::EventTime> &sequence = findSequence_(event);
         switch (static_cast<EventTimeType>(event.type))
@@ -43,6 +42,33 @@ namespace system_timing
                 addEndNode_(event, sequence);
             } break;
         }
+    }
+
+    void EventTimeManager::addStartNode_(const iris_common::EventTime &event,
+                                         std::list<iris_common::EventTime> &sequence)
+    {
+        if (sequence.size() > 0)
+        {
+            logger_.error("restarting an existing timing sequence: deleting old events");
+            sequence.clear();
+        }
+        sequence.push_back(event);
+    }
+
+    void EventTimeManager::addNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence)
+    {
+        if (sequence.size() == 0)
+        {
+            logger_.error("adding to a non-existing timing sequence");
+        }
+        else
+        {
+            if (event.time < sequence.back().time)
+            {
+                logger_.error("event arrived out of order");
+            }
+        }
+        sequence.push_back(event);
     }
 
     void EventTimeManager::addEndNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence)
@@ -63,33 +89,6 @@ namespace system_timing
         sequences_[event.category.data].erase(event.id);
     }
 
-    void EventTimeManager::addNode_(const iris_common::EventTime &event, std::list<iris_common::EventTime> &sequence)
-    {
-        if (sequence.size() == 0)
-        {
-            logger_.error("adding to a non-existing timing sequence");
-        }
-        else
-        {
-            if (event.time < sequence.back().time)
-            {
-                logger_.error("event arrived out of order");
-            }
-        }
-        sequence.push_back(event);
-    }
-
-    void EventTimeManager::addStartNode_(const iris_common::EventTime &event,
-                                         std::list<iris_common::EventTime> &sequence)
-    {
-        if (sequence.size() > 0)
-        {
-            logger_.error("restarting an existing timing sequence: deleting old events");
-            sequence.clear();
-        }
-        sequence.push_back(event);
-    }
-
     void EventTimeManager::flush()
     {
         for (auto pair : sequences_)
@@ -99,6 +98,7 @@ namespace system_timing
                 save_sequence_(id_pair.second);
             }
         }
+        sequences_.clear();
     }
 
     void EventTimeManager::setSaveFunction(const std::function<void(std::list<iris_common::EventTime> &)> &save_sequence)
@@ -108,7 +108,7 @@ namespace system_timing
 
     void EventTimeManager::writeSequenceToLog(std::list<iris_common::EventTime>& sequence)
     {
-
+        event_time_csv_logger_.write(sequence);
     }
 
     std::list<iris_common::EventTime>& EventTimeManager::findSequence_(const iris_common::EventTime& event)

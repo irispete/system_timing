@@ -5,6 +5,8 @@
 #ifndef PROJECT_EVENTTIMEMANAGER_H
 #define PROJECT_EVENTTIMEMANAGER_H
 
+#include <system_timing/event_time_manager.h>
+#include <system_timing/event_time_csv_logger.h>
 #include <iris_common/EventTime.h>
 #include <iris_common/log/abstract_logger.h>
 
@@ -14,7 +16,7 @@ namespace system_timing
     {
         public:
             EventTimeManager(AbstractEventLogger& logger);
-            EventTimeManager(std::function<void(std::list<iris_common::EventTime> &)> &save_sequence, AbstractEventLogger& logger);
+            void initialize(const std::string& output_folder);
             void addEvent(const iris_common::EventTime &event_time);
             void flush();
             void writeSequenceToLog(std::list<iris_common::EventTime>& sequence);
@@ -33,6 +35,7 @@ namespace system_timing
             std::function<void(std::list<iris_common::EventTime> &)> save_sequence_;
             std::map<std::string, std::map<int, std::list<iris_common::EventTime>>> sequences_;
             AbstractEventLogger& logger_;
+            EventTimeCsvLogger event_time_csv_logger_;
 
     };
 }

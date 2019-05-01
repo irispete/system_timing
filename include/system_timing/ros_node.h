@@ -15,7 +15,7 @@ namespace system_timing
         public:
             RosNode(const std::string &node_name);
 
-            void init(int argc, char* argv[]);
+            virtual void init(int argc, char* argv[]);
 
             virtual void getParams()
             {}
@@ -23,12 +23,14 @@ namespace system_timing
             void spin();
 
         protected:
-            void notifyWatchdog_(const ros::Publisher &publisher);
+            void publishHeartbeat_();
 
             double spin_rate_hz_ = 15;
             ros::NodeHandle node_handle_;
+            ros::Publisher watchdog_publisher_;
             std::string node_name_;
-            iris_common::EventLogger event_logger{};
+            std::string output_subfolder_;
+            iris_common::EventLogger event_logger_{};
     };
 }
 

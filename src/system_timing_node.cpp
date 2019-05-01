@@ -3,6 +3,7 @@
 
 #include <system_timing/system_timing_ros_node.h>
 #include <iris_common/log/console_logging.h>
+#include <iris_common/log/csv_logger_inc.h>
 
 namespace system_timing
 {
