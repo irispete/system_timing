@@ -26,7 +26,7 @@ namespace system_timing
             void publishHeartbeat_();
 
             double spin_rate_hz_ = 15;
-            ros::NodeHandle node_handle_;
+            std::shared_ptr<ros::NodeHandle> node_handle_;
             ros::Publisher watchdog_publisher_;
             std::string node_name_;
             std::string output_subfolder_;
