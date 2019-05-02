@@ -25,7 +25,7 @@ namespace system_timing
                             "Time"
                     });
         }
-        CsvLogger::initialize(file_name,headers);
+        CsvLogger::initialize(file_name, headers);
     }
 
     bool EventTimeCsvLogger::write(const std::list<iris_common::EventTime>& sequence) const

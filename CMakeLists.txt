@@ -13,12 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
         iris_common
         )
 
-set(cpprestsdk_DIR /usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/cmake/)
-find_package(cpprestsdk REQUIRED NAMES
-        cpprestsdk
-        cpprest
-        )
-
 find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
 list(
         APPEND CMAKE_CXX_CPPCHECK
@@ -89,11 +83,10 @@ add_library(system_timing
         src/ros_node.cpp
         src/system_timing_ros_node.cpp
         src/event_time_manager.cpp
-        src/event_time_publisher.cpp
         src/event_time_csv_logger.cpp
         )
 add_dependencies(system_timing ${catkin_EXPORTED_TARGETS})
-target_link_libraries(system_timing PRIVATE cpprestsdk::cpprest
+target_link_libraries(system_timing
         ${gcov_LIBS}
         ${catkin_LIBRARIES}
         ${YAMLCPP_LIBRARY}

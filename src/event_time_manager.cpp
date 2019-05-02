@@ -2,8 +2,8 @@
 // Created by irispete on 4/27/19.
 //
 
-#include "../include/system_timing/event_time_publisher.h"
-#include "../include/system_timing/event_time_manager.h"
+#include <iris_common/event_time_publisher.h>
+#include <system_timing/event_time_manager.h>
 #include <iris_common/log/csv_logger_inc.h>
 
 namespace system_timing
@@ -20,7 +20,7 @@ namespace system_timing
 
     void EventTimeManager::initialize(const std::string& output_folder)
     {
-        event_time_csv_logger_.initialize(output_folder + "/events/");
+        event_time_csv_logger_.initialize(output_folder + "/events/system_timing.csv");
         if (!save_sequence_)
         {
             save_sequence_ =  [this](std::list<iris_common::EventTime>& event) {
@@ -32,17 +32,17 @@ namespace system_timing
     void EventTimeManager::addEvent(const iris_common::EventTime &event)
     {
         std::list<iris_common::EventTime> &sequence = findSequence_(event);
-        switch (static_cast<EventTimeType>(event.type))
+        switch (static_cast<iris_common::EventTimeType>(event.type))
         {
-            case EventTimeType::start:
+            case iris_common::EventTimeType::start:
             {
                 addStartNode_(event, sequence);
             } break;
-            case EventTimeType::add:
+            case iris_common::EventTimeType::add:
             {
                 addNode_(event, sequence);
             } break;
-            case EventTimeType::end:
+            case iris_common::EventTimeType::end:
             {
                 addEndNode_(event, sequence);
             } break;
@@ -65,7 +65,7 @@ namespace system_timing
     {
         if (sequence.size() == 0)
         {
-            logger_.error("adding to a non-existing timing sequence");
+            logger_.error("adding to a non-existing timing sequence:" + event.event.data + " : " + std::to_string(event.id));
         }
         else
         {
